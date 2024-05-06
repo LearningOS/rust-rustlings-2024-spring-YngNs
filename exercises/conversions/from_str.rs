@@ -9,6 +9,7 @@
 // Execute `rustlings hint from_str` or use the `hint` watch subcommand for a
 // hint.
 
+
 use std::num::ParseIntError;
 use std::str::FromStr;
 
@@ -31,7 +32,7 @@ enum ParsePersonError {
     ParseInt(ParseIntError),
 }
 
-// I AM NOT DONE
+
 
 // Steps:
 // 1. If the length of the provided string is 0, an error should be returned
@@ -51,8 +52,38 @@ enum ParsePersonError {
 
 impl FromStr for Person {
     type Err = ParsePersonError;
+    
     fn from_str(s: &str) -> Result<Person, Self::Err> {
+        let words : Vec<&str> = s.split(",").collect();
+        if let Some(first_word) = words.get(0) {
+            if first_word.is_empty() && words.len()!= 1 {
+                return Err(ParsePersonError::NoName);
+            }
+            if first_word.is_empty() && words.len()== 1 {
+                return Err(ParsePersonError::Empty);
+            }
+            if words.len() != 2 {
+                return Err(ParsePersonError::BadLen);
+            }
+            if let Some(num) = words.get(1) {
+                if let Ok(num) = num.trim().parse::<usize>() {
+                    return Ok(Person {
+                        name : first_word.to_string(),
+                        age : num,
+                    });
+                }
+                if let Err(erro1) = num.trim().parse::<usize>() {
+                    return Err(ParsePersonError::ParseInt(erro1));
+                }
+               
+
+            }
+            //
+
+        }
+        return Err(ParsePersonError::Empty);
     }
+
 }
 
 fn main() {
