@@ -2,11 +2,13 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
+use std::cmp::PartialOrd;
+use std::clone::Clone;
+//use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -22,6 +24,7 @@ impl<T> Node<T> {
         }
     }
 }
+
 #[derive(Debug)]
 struct LinkedList<T> {
     length: u32,
@@ -29,14 +32,20 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
-    fn default() -> Self {
+impl<T : PartialOrd + Clone> Default for LinkedList<T> {
+    fn default() -> Self 
+    where
+        T : PartialOrd + Clone,
+    {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
-    pub fn new() -> Self {
+impl<T : PartialOrd + Clone> LinkedList<T> {
+    pub fn new() -> Self 
+    where
+        T : PartialOrd + Clone,
+    {
         Self {
             length: 0,
             start: None,
@@ -44,8 +53,11 @@ impl<T> LinkedList<T> {
         }
     }
 
-    pub fn add(&mut self, obj: T) {
-        let mut node = Box::new(Node::new(obj));
+    pub fn add(&mut self, obj: T) 
+    where
+        T: Clone,
+    {
+        let mut node = Box::new(Node::new(obj.clone()));
         node.next = None;
         let node_ptr = Some(unsafe { NonNull::new_unchecked(Box::into_raw(node)) });
         match self.end {
@@ -69,15 +81,82 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(list_a:LinkedList<T>, list_b:LinkedList<T>) -> Self
+    where
+        T: PartialOrd,
 	{
-		//TODO
+       
+        //let node_ptr = Some(unsafe { NonNull::new_unchecked(Box::into_raw(node)) });//表示得到能放入链表的node
+        let mut list_new = LinkedList::<T>::new();
+        let mut this = list_a.start;
+        let mut other = list_b.start;
+        while let (Some(node_this), Some(node_other)) = (this, other) {
+            let val_this = unsafe { &(*node_this.as_ptr()).val};
+            let val_other = unsafe { &(*node_other.as_ptr()).val};
+            if *val_this >= *val_other {
+                list_new.add((*val_other).clone());
+                other = unsafe{(*node_other.as_ptr()).next};
+            }
+            else {
+                list_new.add((*val_this).clone());
+                this = unsafe{(*node_this.as_ptr()).next};
+            }
+        }
+        while let Some(node_this) = this {
+            list_new.add(unsafe { (*node_this.as_ptr()).val.clone() });
+            this = unsafe { (*node_this.as_ptr()).next };
+        }
+        while let Some(node_other) = other {
+            list_new.add(unsafe { (*node_other.as_ptr()).val.clone() });
+            other = unsafe { (*node_other.as_ptr()).next };
+        }
+        
+        /*match (this, other) {
+            (Some(node_this), Some(node_other)) => {
+                let val_this = unsafe { &(*node_this.as_ptr().val)};
+                let val_other = unsafe { &(*node_other.as_ptr().val)};
+                if val_this >= val_other {
+                    list_new.add(*val_other);
+                    /*match list_b.start.next {
+                        None => {
+                            list_b.start = None;
+                            list_b.length -= 1;
+                        }
+                        Some(next_ptr) => {
+                            list_b.start = next_ptr;
+                            list_b.length -= 1;
+                        }
+                    }*/
+                    other = unsafe{(*node_other.as_ptr()).next}
+                }
+                if val_this < val_other {
+                    list_new.add(*val_this);
+                    match list_a.start.next {
+                        None => {
+                            list_a.start = None;
+                            list_a.length -= 1;
+                        }
+                        Some(next_ptr) => {
+                            list_a.start = next_ptr;
+                            list_a.length -= 1;
+                        }
+                    }
+                }
+
+            }
+            (None, Some(this)) | (Some(this), None) => {
+
+            }
+
+        }*/
+        
+		
 
 
 		Self {
-            length: 0,
-            start: None,
-            end: None,
+            length: list_new.length,
+            start: list_new.start,
+            end: list_new.end,
         }
 	}
 }

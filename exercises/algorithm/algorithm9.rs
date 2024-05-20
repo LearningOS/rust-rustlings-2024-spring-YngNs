@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,7 +37,34 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.heap_up(self.count);
+        
+    }
+    fn heap_up(&mut self,mut idx: usize) {//比较父子，向上移动
+        while idx > 1 {
+            let parent_idx = idx / 2;
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx);
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
+    }
+    fn heap_down(&mut self, mut idx: usize){//删除元素的时候将最小最大元素移动到根位置
+        while self.children_present(idx) {
+            let child = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[child], &self.items[idx]) {
+                self.items.swap(child, idx);
+                idx = child;
+            } else {
+                break;
+            
+            }
+        }
+
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -56,9 +83,15 @@ where
         self.left_child_idx(idx) + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
+    fn smallest_child_idx(&self, idx: usize) -> usize {//min
         //TODO
-		0
+        let right = self.right_child_idx(idx);
+        let left = self.left_child_idx(idx);
+        if right <= self.count && (self.comparator)(&self.items[right], &self.items[left]) {
+            right 
+        } else {
+            left
+        }
     }
 }
 
@@ -84,8 +117,19 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+        else {
+            self.items.swap(1, self.count);
+            let result = self.items.pop();
+            self.count -= 1;
+            if self.count > 0 {
+                self.heap_down(1);
+            }
+            result
+
+        }
     }
 }
 
